@@ -2047,42 +2047,64 @@ function bearlib:MakeWindow(Configs)
         end
 
         function Tab:AddSection(Configs)
-			local SectionName = type(Configs) == "string" and Configs or Configs[1] or Configs.Name or Configs.Title or Configs.Section
-			
-			local SectionFrame = Create("Frame", Container, {
-				Size = UDim2.new(1, 0, 0, 20),
-				BackgroundTransparency = 1,
-				Name = "Option"
-			})
-			
-			local SectionLabel = InsertTheme(Create("TextLabel", SectionFrame, {
-				Font = Enum.Font.GothamBold,
-				Text = SectionName,
-				TextColor3 = Theme["Color Text"],
-				Size = UDim2.new(1, -25, 1, 0),
-				Position = UDim2.new(0, 5),
-				BackgroundTransparency = 1,
-				TextTruncate = "AtEnd",
-				TextSize = 14,
-				TextXAlignment = "Left"
-			}), "Text")
-			
-			local Section = {}
-			table.insert(redzlib.Options, {type = "Section", Name = SectionName, func = Section})
-			function Section:Visible(Bool)
-				if Bool == nil then SectionFrame.Visible = not SectionFrame.Visible return end
-				SectionFrame.Visible = Bool
-			end
-			function Section:Destroy()
-				SectionFrame:Destroy()
-			end
-			function Section:Set(New)
-				if New then
-					SectionLabel.Text = GetStr(New)
-				end
-			end
-			return Section
-		end
+            local SectionName = type(Configs) == "string" and Configs or Configs[1] or Configs.Name or Configs.Title or Configs.Section
+            CurrentSectionName = SectionName
+
+            local SectionFrame = Create("Frame", Container, {
+                Size = UDim2.new(1, 0, 0, 30),
+                BackgroundTransparency = 1,
+                Name = "Option",
+                LayoutOrder = GetOrder(),
+                ZIndex = 2
+            })
+
+            local SectionLabel = InsertTheme(Create("TextLabel", SectionFrame, {
+                Font = Enum.Font.GothamBold,
+                Text = SectionName,
+                TextColor3 = Theme["Color Text"],
+                Size = UDim2.new(1, -25, 0, 18),
+                Position = UDim2.new(0, 5, 0, 0),
+                BackgroundTransparency = 1,
+                TextTruncate = "AtEnd",
+                TextSize = 14,
+                TextXAlignment = "Left",
+                ZIndex = 3
+            }), "Text")
+
+            -- [[ ĐÃ XÓA THANH NGANG DƯỚI SECTION ]] --
+
+            table.insert(bearlib.AllElements, {
+                Name = SectionName,
+                Instance = SectionFrame,
+                OriginalParent = Container,
+                SectionName = SectionName,
+                Underline = nil,
+                UnderlineGradient = nil
+            })
+
+            local Section = {}
+            table.insert(bearlib.Options, {type = "Section", Name = SectionName, func = Section})
+
+            function Section:Visible(Bool)
+                if Bool == nil then
+                    SectionFrame.Visible = not SectionFrame.Visible
+                    return
+                end
+                SectionFrame.Visible = Bool
+            end
+
+            function Section:Destroy()
+                SectionFrame:Destroy()
+            end
+
+            function Section:Set(New)
+                if New then
+                    SectionLabel.Text = GetStr(New)
+                end
+            end
+
+            return Section
+        end
 
         function Tab:AddParagraph(Configs)
             local PName = Configs[1] or Configs.Title or "Paragraph"
