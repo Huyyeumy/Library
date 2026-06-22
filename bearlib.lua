@@ -842,7 +842,7 @@ local function SaveBarPosition()
 end
 
 -- ================================
--- KEY SYSTEM
+-- KEY SYSTEM - GIAO DIỆN ĐÚNG
 -- ================================
 local function CheckKey(inputKey, validKeys)
     inputKey = string.gsub(inputKey, "^%s*(.-)%s*$", "%1")
@@ -866,25 +866,26 @@ function bearlib:CreateKeySystem(Config)
     KeyInputFrame.ResetOnSpawn = false
     bearlib.KeySystem.KeyInputFrame = KeyInputFrame
     
-    local MainFrameKS = Instance.new("Frame")
-    MainFrameKS.Name = "MainFrame"
-    MainFrameKS.Parent = KeyInputFrame
-    MainFrameKS.BackgroundColor3 = Theme["Color Hub 2"] or Color3.fromRGB(15, 15, 25)
-    MainFrameKS.BorderSizePixel = 2
-    MainFrameKS.BorderColor3 = Theme["Color Stroke"] or Color3.fromRGB(255, 255, 255)
-    MainFrameKS.Position = UDim2.new(0.5, -200, 0.5, -150)
-    MainFrameKS.Size = UDim2.new(0, 0, 0, 0)
-    MainFrameKS.Active = true
-    MainFrameKS.ClipsDescendants = true
+    -- Main Frame
+    local MainFrame = Instance.new("Frame")
+    MainFrame.Name = "MainFrame"
+    MainFrame.Parent = KeyInputFrame
+    MainFrame.BackgroundColor3 = Theme["Color Hub 2"] or Color3.fromRGB(15, 15, 25)
+    MainFrame.BorderSizePixel = 2
+    MainFrame.BorderColor3 = Theme["Color Stroke"] or Color3.fromRGB(255, 255, 255)
+    MainFrame.Position = UDim2.new(0.5, -200, 0.5, -150)
+    MainFrame.Size = UDim2.new(0, 0, 0, 0)
+    MainFrame.Active = true
+    MainFrame.ClipsDescendants = true
     
     local MainCorner = Instance.new("UICorner")
-    MainCorner.Parent = MainFrameKS
+    MainCorner.Parent = MainFrame
     MainCorner.CornerRadius = UDim.new(0, Theme["Corner Radius"] or 12)
     
     -- Drag Bar
     local DragBar = Instance.new("Frame")
     DragBar.Name = "DragBar"
-    DragBar.Parent = MainFrameKS
+    DragBar.Parent = MainFrame
     DragBar.BackgroundTransparency = 1
     DragBar.Position = UDim2.new(0, 0, 0, 0)
     DragBar.Size = UDim2.new(1, 0, 0, 28)
@@ -896,13 +897,13 @@ function bearlib:CreateKeySystem(Config)
     local function UpdateDrag(Input)
         local delta = Input.Position - DragStart
         local Position = UDim2.new(StartPos.X.Scale, StartPos.X.Offset + delta.X, StartPos.Y.Scale, StartPos.Y.Offset + delta.Y)
-        MainFrameKS.Position = Position
+        MainFrame.Position = Position
     end
     
     DragBar.InputBegan:Connect(function(Input)
         if Input.UserInputType == Enum.UserInputType.MouseButton1 or Input.UserInputType == Enum.UserInputType.Touch then
             InputOn = true
-            StartPos = MainFrameKS.Position
+            StartPos = MainFrame.Position
             DragStart = Input.Position
         end
     end)
@@ -922,7 +923,7 @@ function bearlib:CreateKeySystem(Config)
     -- Close Button
     local CloseButton = Instance.new("ImageButton")
     CloseButton.Name = "CloseButton"
-    CloseButton.Parent = MainFrameKS
+    CloseButton.Parent = MainFrame
     CloseButton.BackgroundTransparency = 1
     CloseButton.BorderSizePixel = 0
     CloseButton.Position = UDim2.new(1, -32, 0, 8)
@@ -947,7 +948,7 @@ function bearlib:CreateKeySystem(Config)
     -- Tab Bar
     local TabBar = Instance.new("Frame")
     TabBar.Name = "TabBar"
-    TabBar.Parent = MainFrameKS
+    TabBar.Parent = MainFrame
     TabBar.BackgroundColor3 = Theme["Color Hub 1"] or Color3.fromRGB(25, 25, 40)
     TabBar.BorderSizePixel = 0
     TabBar.Position = UDim2.new(0, 0, 0, 0)
@@ -957,7 +958,17 @@ function bearlib:CreateKeySystem(Config)
     TabBarCorner.Parent = TabBar
     TabBarCorner.CornerRadius = UDim.new(0, 12)
     
-    -- Logo
+    -- Tab Bar Mask
+    local TabBarMask = Instance.new("Frame")
+    TabBarMask.Name = "TabBarMask"
+    TabBarMask.Parent = TabBar
+    TabBarMask.BackgroundColor3 = Theme["Color Hub 1"] or Color3.fromRGB(25, 25, 40)
+    TabBarMask.BorderSizePixel = 0
+    TabBarMask.Position = UDim2.new(0, 0, 0, 12)
+    TabBarMask.Size = UDim2.new(1, 0, 1, -12)
+    TabBarMask.ZIndex = 2
+    
+    -- Logo Button
     local LogoButton = Instance.new("ImageButton")
     LogoButton.Name = "LogoButton"
     LogoButton.Parent = TabBar
@@ -972,6 +983,14 @@ function bearlib:CreateKeySystem(Config)
     LogoButton.AutoButtonColor = false
     LogoButton.ScaleType = Enum.ScaleType.Fit
     
+    LogoButton.MouseEnter:Connect(function()
+        LogoButton.ImageColor3 = Color3.fromRGB(255, 215, 0)
+    end)
+    
+    LogoButton.MouseLeave:Connect(function()
+        LogoButton.ImageColor3 = Theme["Color Text"] or Color3.fromRGB(255, 255, 255)
+    end)
+    
     -- Center Frame
     local CenterFrame = Instance.new("Frame")
     CenterFrame.Name = "CenterFrame"
@@ -983,7 +1002,7 @@ function bearlib:CreateKeySystem(Config)
     CenterFrame.ZIndex = 10
     CenterFrame.Active = true
     
-    -- Tab 1
+    -- Tab 1: KEY SYSTEM
     local Tab1 = Instance.new("TextButton")
     Tab1.Name = "Tab1"
     Tab1.Parent = CenterFrame
@@ -994,10 +1013,11 @@ function bearlib:CreateKeySystem(Config)
     Tab1.Text = Config.Title or "KEY SYSTEM"
     Tab1.TextColor3 = Theme["Color Text"] or Color3.fromRGB(255, 255, 255)
     Tab1.TextSize = 13
+    Tab1.TextScaled = false
     Tab1.ZIndex = 60
     Tab1.AutoButtonColor = false
     
-    -- Tab 2
+    -- Tab 2: INFO
     local Tab2 = Instance.new("TextButton")
     Tab2.Name = "Tab2"
     Tab2.Parent = CenterFrame
@@ -1008,6 +1028,7 @@ function bearlib:CreateKeySystem(Config)
     Tab2.Text = "INFO"
     Tab2.TextColor3 = Color3.fromRGB(200, 200, 200)
     Tab2.TextSize = 13
+    Tab2.TextScaled = false
     Tab2.ZIndex = 60
     Tab2.AutoButtonColor = false
     
@@ -1024,13 +1045,13 @@ function bearlib:CreateKeySystem(Config)
     -- Content Frame
     local ContentFrame = Instance.new("Frame")
     ContentFrame.Name = "ContentFrame"
-    ContentFrame.Parent = MainFrameKS
+    ContentFrame.Parent = MainFrame
     ContentFrame.BackgroundTransparency = 1
     ContentFrame.Position = UDim2.new(0, 0, 0, 35)
     ContentFrame.Size = UDim2.new(1, 0, 1, -35)
     ContentFrame.ClipsDescendants = true
     
-    -- Key Panel
+    -- KEY PANEL
     local KeyPanel = Instance.new("Frame")
     KeyPanel.Name = "KeyPanel"
     KeyPanel.Parent = ContentFrame
@@ -1052,19 +1073,6 @@ function bearlib:CreateKeySystem(Config)
     TitleLabel.TextSize = 20
     TitleLabel.TextStrokeColor3 = Color3.fromRGB(0, 0, 0)
     TitleLabel.TextStrokeTransparency = 0.3
-    
-    -- Description
-    local DescLabel = Instance.new("TextLabel")
-    DescLabel.Name = "DescLabel"
-    DescLabel.Parent = KeyPanel
-    DescLabel.BackgroundTransparency = 1
-    DescLabel.Position = UDim2.new(0.1, 0, 0.12, 0)
-    DescLabel.Size = UDim2.new(0.8, 0, 0, 25)
-    DescLabel.Font = Enum.Font.Gotham
-    DescLabel.Text = Config.Description or ""
-    DescLabel.TextColor3 = Theme["Color Dark Text"] or Color3.fromRGB(200, 200, 200)
-    DescLabel.TextSize = 12
-    DescLabel.TextXAlignment = Enum.TextXAlignment.Center
     
     -- Key TextBox
     local KeyTextBox = Instance.new("TextBox")
@@ -1143,7 +1151,7 @@ function bearlib:CreateKeySystem(Config)
     StatusLabel.TextSize = 14
     StatusLabel.TextScaled = false
     
-    -- Info Panel
+    -- INFO PANEL
     local InfoPanel = Instance.new("Frame")
     InfoPanel.Name = "InfoPanel"
     InfoPanel.Parent = ContentFrame
@@ -1165,6 +1173,7 @@ function bearlib:CreateKeySystem(Config)
     InfoTitle.TextStrokeColor3 = Color3.fromRGB(0, 0, 0)
     InfoTitle.TextStrokeTransparency = 0.3
     
+    -- Info Text
     local InfoText = Instance.new("TextLabel")
     InfoText.Name = "InfoText"
     InfoText.Parent = InfoPanel
@@ -1172,7 +1181,7 @@ function bearlib:CreateKeySystem(Config)
     InfoText.Position = UDim2.new(0.08, 0, 0.15, 0)
     InfoText.Size = UDim2.new(0.85, 0, 0.6, 0)
     InfoText.Font = Enum.Font.Gotham
-    InfoText.Text = "INSTRUCTIONS\n\n• Enter your key in the box below\n• Press 'GET KEY' to copy the key\n• Valid key will activate the feature\n\nContact:\nsupport@example.com"
+    InfoText.Text = Config.Description or "INSTRUCTIONS\n\n• Enter your key in the box below\n• Press 'GET KEY' to copy the key\n• Valid key will activate the feature\n\nContact:\nsupport@example.com"
     InfoText.TextColor3 = Theme["Color Dark Text"] or Color3.fromRGB(220, 220, 230)
     InfoText.TextSize = 14
     InfoText.TextXAlignment = Enum.TextXAlignment.Left
@@ -1180,6 +1189,7 @@ function bearlib:CreateKeySystem(Config)
     InfoText.TextScaled = false
     InfoText.LineHeight = 1.3
     
+    -- Close Info Button
     local CloseInfoButton = Instance.new("TextButton")
     CloseInfoButton.Name = "CloseInfoButton"
     CloseInfoButton.Parent = InfoPanel
@@ -1230,10 +1240,36 @@ function bearlib:CreateKeySystem(Config)
     Tab2.MouseButton1Click:Connect(function() SwitchTab(2) end)
     CloseInfoButton.MouseButton1Click:Connect(function() SwitchTab(1) end)
     
+    -- Tab Hover Effects
+    Tab1.MouseEnter:Connect(function()
+        if KeyPanel.Visible == false then
+            Tab1.TextColor3 = Theme["Color Text"] or Color3.fromRGB(255, 255, 255)
+        end
+    end)
+    
+    Tab1.MouseLeave:Connect(function()
+        if KeyPanel.Visible == false then
+            Tab1.TextColor3 = Color3.fromRGB(200, 200, 200)
+        end
+    end)
+    
+    Tab2.MouseEnter:Connect(function()
+        if InfoPanel.Visible == false then
+            Tab2.TextColor3 = Theme["Color Text"] or Color3.fromRGB(255, 255, 255)
+        end
+    end)
+    
+    Tab2.MouseLeave:Connect(function()
+        if InfoPanel.Visible == false then
+            Tab2.TextColor3 = Color3.fromRGB(200, 200, 200)
+        end
+    end)
+    
     -- Button Hover
     SubmitButton.MouseEnter:Connect(function()
         SubmitButton.BackgroundColor3 = Color3.fromRGB(30, 130, 240)
     end)
+    
     SubmitButton.MouseLeave:Connect(function()
         SubmitButton.BackgroundColor3 = Theme["Color Theme"] or Color3.fromRGB(0, 100, 220)
     end)
@@ -1241,6 +1277,7 @@ function bearlib:CreateKeySystem(Config)
     GetKeyButton.MouseEnter:Connect(function()
         GetKeyButton.BackgroundColor3 = Color3.fromRGB(240, 80, 80)
     end)
+    
     GetKeyButton.MouseLeave:Connect(function()
         GetKeyButton.BackgroundColor3 = Color3.fromRGB(220, 50, 50)
     end)
@@ -1277,8 +1314,9 @@ function bearlib:CreateKeySystem(Config)
             _G.ValidKey = key
             
             task.wait(0.5)
-            MainFrameKS:TweenSize(
+            MainFrame:TweenSizeAndPosition(
                 UDim2.new(0, 0, 0, 0),
+                UDim2.new(0.5, 0, 0.5, 0),
                 Enum.EasingDirection.Out,
                 Enum.EasingStyle.Quad,
                 0.3,
@@ -1344,11 +1382,11 @@ function bearlib:CreateKeySystem(Config)
     end)
     
     -- Show animation
-    MainFrameKS.Visible = false
-    MainFrameKS.Size = UDim2.new(0, 0, 0, 0)
+    MainFrame.Visible = false
+    MainFrame.Size = UDim2.new(0, 0, 0, 0)
     task.wait(0.1)
-    MainFrameKS.Visible = true
-    MainFrameKS:TweenSize(
+    MainFrame.Visible = true
+    MainFrame:TweenSize(
         UDim2.new(0, 400, 0, 300),
         Enum.EasingDirection.Out,
         Enum.EasingStyle.Quad,
@@ -1930,7 +1968,8 @@ function bearlib:MakeWindow(Configs)
                 Window:CreateMinimizedBar()
             else
                 MinimizedBar.Visible = true
-                MainFrame.Visible = false                ControlSize.Visible = false
+                MainFrame.Visible = false
+                ControlSize.Visible = false
                 ControlSize2.Visible = false
                 Minimized = true
                 UIFullVisible = false
