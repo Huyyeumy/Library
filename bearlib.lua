@@ -841,9 +841,6 @@ local function SaveBarPosition()
     end
 end
 
--- ================================
--- KEY SYSTEM - GIAO DIỆN ĐÚNG
--- ================================
 local function CheckKey(inputKey, validKeys)
     inputKey = string.gsub(inputKey, "^%s*(.-)%s*$", "%1")
     for _, key in ipairs(validKeys) do
@@ -1102,37 +1099,41 @@ function bearlib:CreateKeySystem(Config)
     ButtonFrameKS.Position = UDim2.new(0.05, 0, 0.55, 0)
     ButtonFrameKS.Size = UDim2.new(0.9, 0, 0, 40)
     
-    -- Submit Button
+    -- ===== SUBMIT BUTTON - ĐÃ SỬA =====
     local SubmitButton = Instance.new("TextButton")
     SubmitButton.Name = "SubmitButton"
     SubmitButton.Parent = ButtonFrameKS
-    SubmitButton.BackgroundColor3 = Theme["Color Theme"] or Color3.fromRGB(0, 100, 220)
+    SubmitButton.BackgroundColor3 = Color3.fromRGB(0, 120, 255)  -- Màu xanh dương đậm
     SubmitButton.BorderSizePixel = 1
-    SubmitButton.BorderColor3 = Theme["Color Stroke"] or Color3.fromRGB(255, 255, 255)
+    SubmitButton.BorderColor3 = Color3.fromRGB(255, 255, 255)
     SubmitButton.Position = UDim2.new(0, 0, 0, 0)
     SubmitButton.Size = UDim2.new(0.48, 0, 1, 0)
     SubmitButton.Font = Enum.Font.GothamBold
     SubmitButton.Text = "SUBMIT"
-    SubmitButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+    SubmitButton.TextColor3 = Color3.fromRGB(255, 255, 255)  -- Chữ trắng
     SubmitButton.TextSize = 16
+    SubmitButton.TextScaled = false
+    SubmitButton.AutoButtonColor = false
     
     local ButtonCorner1 = Instance.new("UICorner")
     ButtonCorner1.Parent = SubmitButton
     ButtonCorner1.CornerRadius = UDim.new(0, 6)
     
-    -- Get Key Button
+    -- ===== GET KEY BUTTON - ĐÃ SỬA =====
     local GetKeyButton = Instance.new("TextButton")
     GetKeyButton.Name = "GetKeyButton"
     GetKeyButton.Parent = ButtonFrameKS
-    GetKeyButton.BackgroundColor3 = Color3.fromRGB(220, 50, 50)
+    GetKeyButton.BackgroundColor3 = Color3.fromRGB(220, 50, 50)  -- Màu đỏ
     GetKeyButton.BorderSizePixel = 1
-    GetKeyButton.BorderColor3 = Theme["Color Stroke"] or Color3.fromRGB(255, 255, 255)
+    GetKeyButton.BorderColor3 = Color3.fromRGB(255, 255, 255)
     GetKeyButton.Position = UDim2.new(0.52, 0, 0, 0)
     GetKeyButton.Size = UDim2.new(0.48, 0, 1, 0)
     GetKeyButton.Font = Enum.Font.GothamBold
     GetKeyButton.Text = "GET KEY"
-    GetKeyButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+    GetKeyButton.TextColor3 = Color3.fromRGB(255, 255, 255)  -- Chữ trắng
     GetKeyButton.TextSize = 16
+    GetKeyButton.TextScaled = false
+    GetKeyButton.AutoButtonColor = false
     
     local ButtonCorner2 = Instance.new("UICorner")
     ButtonCorner2.Parent = GetKeyButton
@@ -1202,6 +1203,7 @@ function bearlib:CreateKeySystem(Config)
     CloseInfoButton.Text = "BACK"
     CloseInfoButton.TextColor3 = Color3.fromRGB(255, 255, 255)
     CloseInfoButton.TextSize = 16
+    CloseInfoButton.AutoButtonColor = false
     
     local CloseCorner = Instance.new("UICorner")
     CloseCorner.Parent = CloseInfoButton
@@ -1265,21 +1267,29 @@ function bearlib:CreateKeySystem(Config)
         end
     end)
     
-    -- Button Hover
+    -- ===== BUTTON HOVER EFFECTS - ĐÃ SỬA =====
     SubmitButton.MouseEnter:Connect(function()
-        SubmitButton.BackgroundColor3 = Color3.fromRGB(30, 130, 240)
+        SubmitButton.BackgroundColor3 = Color3.fromRGB(30, 150, 255)
     end)
     
     SubmitButton.MouseLeave:Connect(function()
-        SubmitButton.BackgroundColor3 = Theme["Color Theme"] or Color3.fromRGB(0, 100, 220)
+        SubmitButton.BackgroundColor3 = Color3.fromRGB(0, 120, 255)
     end)
     
     GetKeyButton.MouseEnter:Connect(function()
-        GetKeyButton.BackgroundColor3 = Color3.fromRGB(240, 80, 80)
+        GetKeyButton.BackgroundColor3 = Color3.fromRGB(255, 80, 80)
     end)
     
     GetKeyButton.MouseLeave:Connect(function()
         GetKeyButton.BackgroundColor3 = Color3.fromRGB(220, 50, 50)
+    end)
+    
+    CloseInfoButton.MouseEnter:Connect(function()
+        CloseInfoButton.BackgroundColor3 = Color3.fromRGB(30, 130, 240)
+    end)
+    
+    CloseInfoButton.MouseLeave:Connect(function()
+        CloseInfoButton.BackgroundColor3 = Theme["Color Theme"] or Color3.fromRGB(0, 100, 220)
     end)
     
     -- Process Key
@@ -1412,9 +1422,6 @@ function bearlib:CreateKeySystem(Config)
         end
     }
 end
--- ================================
--- END KEY SYSTEM
--- ================================
 
 function bearlib:MakeWindow(Configs)
     local WTitle = Configs[1] or Configs.Name or Configs.Title or "bearlib"
