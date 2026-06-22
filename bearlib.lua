@@ -50,15 +50,7 @@ local bearlib = {
         return {}
     end)(),
     AllElements = {},
-    ThunderActive = false,
-    KeySystem = {
-        Active = false,
-        ValidKeys = {},
-        KeyInputFrame = nil,
-        IsKeyValidated = false,
-        Callback = nil,
-        Config = {}
-    }
+    ThunderActive = false
 }
 
 local ViewportSize = workspace.CurrentCamera.ViewportSize
@@ -791,6 +783,8 @@ local function RefreshAllUIElements()
                     child.TextColor3 = Theme["Color Text"]
                 end
             end
+
+            -- ĐÃ XÓA CODE XỬ LÝ UNDERLINE VÀ UNDERLINEGRADIENT
         end
     end
 
@@ -2659,6 +2653,8 @@ function bearlib:MakeWindow(Configs)
                 ZIndex = 3
             }), "Text")
 
+            -- [[ ĐÃ XÓA THANH NGANG DƯỚI SECTION ]] --
+
             table.insert(bearlib.AllElements, {
                 Name = SectionName,
                 Instance = SectionFrame,
@@ -3936,6 +3932,8 @@ function bearlib:MakeWindow(Configs)
                     ZIndex = 3
                 }), "Text")
 
+                -- [[ ĐÃ XÓA THANH NGANG DƯỚI SECTION ]] --
+
                 table.insert(bearlib.AllElements, {
                     Name = SectionName,
                     Instance = SectionFrame,
@@ -4885,6 +4883,7 @@ task.spawn(function()
     UICorner.CornerRadius = UDim.new(1, 0)
     UICorner.Parent = ToggleButton
 
+    -- Thêm viền nổi cho nút toggle
     local ToggleStroke = Instance.new("UIStroke")
     ToggleStroke.Name = "ToggleStroke"
     ToggleStroke.Thickness = 1
@@ -4892,10 +4891,12 @@ task.spawn(function()
     ToggleStroke.LineJoinMode = Enum.LineJoinMode.Round
     ToggleStroke.Parent = ToggleButton
 
+    -- Màu sắc cho hiệu ứng cầu vồng (như code mẫu)
     local RainbowColors = {
         Color3.fromRGB(255,255,255)
     }
 
+    -- Hiệu ứng đổi màu viền
     local colorIndex = 1
     task.spawn(function()
         while ToggleButton and ToggleButton.Parent do
