@@ -50,7 +50,8 @@ local bearlib = {
         return {}
     end)(),
     AllElements = {},
-    ThunderActive = false
+    ThunderActive = false,
+    KeySystem = {}
 }
 
 local ViewportSize = workspace.CurrentCamera.ViewportSize
@@ -783,8 +784,6 @@ local function RefreshAllUIElements()
                     child.TextColor3 = Theme["Color Text"]
                 end
             end
-
-            -- ĐÃ XÓA CODE XỬ LÝ UNDERLINE VÀ UNDERLINEGRADIENT
         end
     end
 
@@ -836,6 +835,10 @@ local function SaveBarPosition()
 end
 
 local function CheckKey(inputKey, validKeys)
+    if not validKeys or #validKeys == 0 then
+        return false
+    end
+    
     inputKey = string.gsub(inputKey, "^%s*(.-)%s*$", "%1")
     for _, key in ipairs(validKeys) do
         if string.upper(inputKey) == string.upper(key) then
@@ -846,18 +849,26 @@ local function CheckKey(inputKey, validKeys)
 end
 
 function bearlib:CreateKeySystem(Config)
-    if not Config or not Config.KeySystem then return end
-    
+    bearlib.KeySystem = bearlib.KeySystem or {}
     bearlib.KeySystem.Config = Config
     bearlib.KeySystem.ValidKeys = Config.Keys or {}
+    bearlib.KeySystem.IsKeyValidated = false
+    bearlib.KeySystem.Callback = nil
+    bearlib.KeySystem.ValidatedKey = nil
+    
+    local LocalPlayer = Players.LocalPlayer
+    if not LocalPlayer then
+        print("⏳ Đợi LocalPlayer...")
+        Players:GetPropertyChangedSignal("LocalPlayer"):Wait()
+        LocalPlayer = Players.LocalPlayer
+    end
     
     local KeyInputFrame = Instance.new("ScreenGui")
     KeyInputFrame.Name = "KeyInputGui"
-    KeyInputFrame.Parent = game.Players.LocalPlayer.PlayerGui
+    KeyInputFrame.Parent = LocalPlayer.PlayerGui
     KeyInputFrame.ResetOnSpawn = false
     bearlib.KeySystem.KeyInputFrame = KeyInputFrame
     
-    -- Main Frame
     local MainFrame = Instance.new("Frame")
     MainFrame.Name = "MainFrame"
     MainFrame.Parent = KeyInputFrame
@@ -873,7 +884,6 @@ function bearlib:CreateKeySystem(Config)
     MainCorner.Parent = MainFrame
     MainCorner.CornerRadius = UDim.new(0, Theme["Corner Radius"] or 12)
     
-    -- Drag Bar
     local DragBar = Instance.new("Frame")
     DragBar.Name = "DragBar"
     DragBar.Parent = MainFrame
@@ -911,7 +921,6 @@ function bearlib:CreateKeySystem(Config)
         end
     end)
     
-    -- Close Button
     local CloseButton = Instance.new("ImageButton")
     CloseButton.Name = "CloseButton"
     CloseButton.Parent = MainFrame
@@ -934,9 +943,9 @@ function bearlib:CreateKeySystem(Config)
     
     CloseButton.MouseButton1Click:Connect(function()
         KeyInputFrame:Destroy()
+        bearlib.KeySystem.IsKeyValidated = false
     end)
     
-    -- Tab Bar
     local TabBar = Instance.new("Frame")
     TabBar.Name = "TabBar"
     TabBar.Parent = MainFrame
@@ -949,7 +958,6 @@ function bearlib:CreateKeySystem(Config)
     TabBarCorner.Parent = TabBar
     TabBarCorner.CornerRadius = UDim.new(0, 12)
     
-    -- Tab Bar Mask
     local TabBarMask = Instance.new("Frame")
     TabBarMask.Name = "TabBarMask"
     TabBarMask.Parent = TabBar
@@ -959,7 +967,6 @@ function bearlib:CreateKeySystem(Config)
     TabBarMask.Size = UDim2.new(1, 0, 1, -12)
     TabBarMask.ZIndex = 2
     
-    -- Logo Button
     local LogoButton = Instance.new("ImageButton")
     LogoButton.Name = "LogoButton"
     LogoButton.Parent = TabBar
@@ -982,7 +989,6 @@ function bearlib:CreateKeySystem(Config)
         LogoButton.ImageColor3 = Theme["Color Text"] or Color3.fromRGB(255, 255, 255)
     end)
     
-    -- Center Frame
     local CenterFrame = Instance.new("Frame")
     CenterFrame.Name = "CenterFrame"
     CenterFrame.Parent = TabBar
@@ -993,7 +999,6 @@ function bearlib:CreateKeySystem(Config)
     CenterFrame.ZIndex = 10
     CenterFrame.Active = true
     
-    -- Tab 1: KEY SYSTEM
     local Tab1 = Instance.new("TextButton")
     Tab1.Name = "Tab1"
     Tab1.Parent = CenterFrame
@@ -1008,7 +1013,6 @@ function bearlib:CreateKeySystem(Config)
     Tab1.ZIndex = 60
     Tab1.AutoButtonColor = false
     
-    -- Tab 2: INFO
     local Tab2 = Instance.new("TextButton")
     Tab2.Name = "Tab2"
     Tab2.Parent = CenterFrame
@@ -1023,7 +1027,6 @@ function bearlib:CreateKeySystem(Config)
     Tab2.ZIndex = 60
     Tab2.AutoButtonColor = false
     
-    -- Tab Indicator
     local TabIndicator = Instance.new("Frame")
     TabIndicator.Name = "TabIndicator"
     TabIndicator.Parent = CenterFrame
@@ -1033,7 +1036,6 @@ function bearlib:CreateKeySystem(Config)
     TabIndicator.Size = UDim2.new(0.5, 0, 0, 2)
     TabIndicator.ZIndex = 60
     
-    -- Content Frame
     local ContentFrame = Instance.new("Frame")
     ContentFrame.Name = "ContentFrame"
     ContentFrame.Parent = MainFrame
@@ -1042,7 +1044,6 @@ function bearlib:CreateKeySystem(Config)
     ContentFrame.Size = UDim2.new(1, 0, 1, -35)
     ContentFrame.ClipsDescendants = true
     
-    -- KEY PANEL
     local KeyPanel = Instance.new("Frame")
     KeyPanel.Name = "KeyPanel"
     KeyPanel.Parent = ContentFrame
@@ -1051,7 +1052,6 @@ function bearlib:CreateKeySystem(Config)
     KeyPanel.Size = UDim2.new(1, 0, 1, 0)
     KeyPanel.Visible = true
     
-    -- Title
     local TitleLabel = Instance.new("TextLabel")
     TitleLabel.Name = "TitleLabel"
     TitleLabel.Parent = KeyPanel
@@ -1065,7 +1065,6 @@ function bearlib:CreateKeySystem(Config)
     TitleLabel.TextStrokeColor3 = Color3.fromRGB(0, 0, 0)
     TitleLabel.TextStrokeTransparency = 0.3
     
-    -- Key TextBox
     local KeyTextBox = Instance.new("TextBox")
     KeyTextBox.Name = "KeyTextBox"
     KeyTextBox.Parent = KeyPanel
@@ -1085,7 +1084,6 @@ function bearlib:CreateKeySystem(Config)
     TextBoxCorner.Parent = KeyTextBox
     TextBoxCorner.CornerRadius = UDim.new(0, 6)
     
-    -- Button Frame
     local ButtonFrameKS = Instance.new("Frame")
     ButtonFrameKS.Name = "ButtonFrame"
     ButtonFrameKS.Parent = KeyPanel
@@ -1093,18 +1091,17 @@ function bearlib:CreateKeySystem(Config)
     ButtonFrameKS.Position = UDim2.new(0.05, 0, 0.55, 0)
     ButtonFrameKS.Size = UDim2.new(0.9, 0, 0, 40)
     
-    -- ===== SUBMIT BUTTON - ĐÃ SỬA =====
     local SubmitButton = Instance.new("TextButton")
     SubmitButton.Name = "SubmitButton"
     SubmitButton.Parent = ButtonFrameKS
-    SubmitButton.BackgroundColor3 = Color3.fromRGB(0, 120, 255)  -- Màu xanh dương đậm
+    SubmitButton.BackgroundColor3 = Color3.fromRGB(0, 120, 255)
     SubmitButton.BorderSizePixel = 1
     SubmitButton.BorderColor3 = Color3.fromRGB(255, 255, 255)
     SubmitButton.Position = UDim2.new(0, 0, 0, 0)
     SubmitButton.Size = UDim2.new(0.48, 0, 1, 0)
     SubmitButton.Font = Enum.Font.GothamBold
     SubmitButton.Text = "SUBMIT"
-    SubmitButton.TextColor3 = Color3.fromRGB(255, 255, 255)  -- Chữ trắng
+    SubmitButton.TextColor3 = Color3.fromRGB(255, 255, 255)
     SubmitButton.TextSize = 16
     SubmitButton.TextScaled = false
     SubmitButton.AutoButtonColor = false
@@ -1113,18 +1110,17 @@ function bearlib:CreateKeySystem(Config)
     ButtonCorner1.Parent = SubmitButton
     ButtonCorner1.CornerRadius = UDim.new(0, 6)
     
-    -- ===== GET KEY BUTTON - ĐÃ SỬA =====
     local GetKeyButton = Instance.new("TextButton")
     GetKeyButton.Name = "GetKeyButton"
     GetKeyButton.Parent = ButtonFrameKS
-    GetKeyButton.BackgroundColor3 = Color3.fromRGB(220, 50, 50)  -- Màu đỏ
+    GetKeyButton.BackgroundColor3 = Color3.fromRGB(220, 50, 50)
     GetKeyButton.BorderSizePixel = 1
     GetKeyButton.BorderColor3 = Color3.fromRGB(255, 255, 255)
     GetKeyButton.Position = UDim2.new(0.52, 0, 0, 0)
     GetKeyButton.Size = UDim2.new(0.48, 0, 1, 0)
     GetKeyButton.Font = Enum.Font.GothamBold
     GetKeyButton.Text = "GET KEY"
-    GetKeyButton.TextColor3 = Color3.fromRGB(255, 255, 255)  -- Chữ trắng
+    GetKeyButton.TextColor3 = Color3.fromRGB(255, 255, 255)
     GetKeyButton.TextSize = 16
     GetKeyButton.TextScaled = false
     GetKeyButton.AutoButtonColor = false
@@ -1133,7 +1129,6 @@ function bearlib:CreateKeySystem(Config)
     ButtonCorner2.Parent = GetKeyButton
     ButtonCorner2.CornerRadius = UDim.new(0, 6)
     
-    -- Status Label
     local StatusLabel = Instance.new("TextLabel")
     StatusLabel.Name = "StatusLabel"
     StatusLabel.Parent = KeyPanel
@@ -1146,7 +1141,6 @@ function bearlib:CreateKeySystem(Config)
     StatusLabel.TextSize = 14
     StatusLabel.TextScaled = false
     
-    -- INFO PANEL
     local InfoPanel = Instance.new("Frame")
     InfoPanel.Name = "InfoPanel"
     InfoPanel.Parent = ContentFrame
@@ -1168,7 +1162,6 @@ function bearlib:CreateKeySystem(Config)
     InfoTitle.TextStrokeColor3 = Color3.fromRGB(0, 0, 0)
     InfoTitle.TextStrokeTransparency = 0.3
     
-    -- Info Text
     local InfoText = Instance.new("TextLabel")
     InfoText.Name = "InfoText"
     InfoText.Parent = InfoPanel
@@ -1184,7 +1177,6 @@ function bearlib:CreateKeySystem(Config)
     InfoText.TextScaled = false
     InfoText.LineHeight = 1.3
     
-    -- Close Info Button
     local CloseInfoButton = Instance.new("TextButton")
     CloseInfoButton.Name = "CloseInfoButton"
     CloseInfoButton.Parent = InfoPanel
@@ -1203,7 +1195,6 @@ function bearlib:CreateKeySystem(Config)
     CloseCorner.Parent = CloseInfoButton
     CloseCorner.CornerRadius = UDim.new(0, 6)
     
-    -- Switch Tab
     local function SwitchTab(tabIndex)
         if tabIndex == 1 then
             KeyPanel.Visible = true
@@ -1236,7 +1227,6 @@ function bearlib:CreateKeySystem(Config)
     Tab2.MouseButton1Click:Connect(function() SwitchTab(2) end)
     CloseInfoButton.MouseButton1Click:Connect(function() SwitchTab(1) end)
     
-    -- Tab Hover Effects
     Tab1.MouseEnter:Connect(function()
         if KeyPanel.Visible == false then
             Tab1.TextColor3 = Theme["Color Text"] or Color3.fromRGB(255, 255, 255)
@@ -1261,7 +1251,6 @@ function bearlib:CreateKeySystem(Config)
         end
     end)
     
-    -- ===== BUTTON HOVER EFFECTS - ĐÃ SỬA =====
     SubmitButton.MouseEnter:Connect(function()
         SubmitButton.BackgroundColor3 = Color3.fromRGB(30, 150, 255)
     end)
@@ -1286,7 +1275,6 @@ function bearlib:CreateKeySystem(Config)
         CloseInfoButton.BackgroundColor3 = Theme["Color Theme"] or Color3.fromRGB(0, 100, 220)
     end)
     
-    -- Process Key
     local function ProcessKey(key)
         key = string.gsub(key, "^%s*(.-)%s*$", "%1")
         
@@ -1314,8 +1302,7 @@ function bearlib:CreateKeySystem(Config)
             end
             
             bearlib.KeySystem.IsKeyValidated = true
-            _G.KeyActivated = true
-            _G.ValidKey = key
+            bearlib.KeySystem.ValidatedKey = key
             
             task.wait(0.5)
             MainFrame:TweenSizeAndPosition(
@@ -1349,11 +1336,10 @@ function bearlib:CreateKeySystem(Config)
         end
     end
     
-    -- Get Key
     local function GetKey()
         local keyLink = Config.KeyLink or ""
-        if setclipboard then
-            setclipboard(keyLink)
+        if type(setclipboard) == "function" then
+            pcall(setclipboard, keyLink)
             StatusLabel.Text = Config.Notifi and Config.Notifi.CopyKeyLink or "Link copied to clipboard!"
             StatusLabel.TextColor3 = Color3.fromRGB(0, 255, 0)
             
@@ -1370,7 +1356,6 @@ function bearlib:CreateKeySystem(Config)
         end
     end
     
-    -- Events
     KeyTextBox.FocusLost:Connect(function(enterPressed)
         if enterPressed then
             ProcessKey(KeyTextBox.Text)
@@ -1385,7 +1370,6 @@ function bearlib:CreateKeySystem(Config)
         GetKey()
     end)
     
-    -- Show animation
     MainFrame.Visible = false
     MainFrame.Size = UDim2.new(0, 0, 0, 0)
     task.wait(0.1)
@@ -1398,8 +1382,8 @@ function bearlib:CreateKeySystem(Config)
         true
     )
     
-    print("Key System ready!")
-    print("Valid keys: " .. table.concat(bearlib.KeySystem.ValidKeys, ", "))
+    print("🔐 Key System ready!")
+    print("✅ Valid keys: " .. table.concat(bearlib.KeySystem.ValidKeys, ", "))
     
     return {
         SetCallback = function(callback)
@@ -1409,7 +1393,7 @@ function bearlib:CreateKeySystem(Config)
             return bearlib.KeySystem.IsKeyValidated
         end,
         GetKey = function()
-            return bearlib.KeySystem.ValidKeys[1] or ""
+            return bearlib.KeySystem.ValidatedKey or ""
         end,
         Destroy = function()
             KeyInputFrame:Destroy()
@@ -2652,8 +2636,6 @@ function bearlib:MakeWindow(Configs)
                 TextXAlignment = "Left",
                 ZIndex = 3
             }), "Text")
-
-            -- [[ ĐÃ XÓA THANH NGANG DƯỚI SECTION ]] --
 
             table.insert(bearlib.AllElements, {
                 Name = SectionName,
@@ -3932,8 +3914,6 @@ function bearlib:MakeWindow(Configs)
                     ZIndex = 3
                 }), "Text")
 
-                -- [[ ĐÃ XÓA THANH NGANG DƯỚI SECTION ]] --
-
                 table.insert(bearlib.AllElements, {
                     Name = SectionName,
                     Instance = SectionFrame,
@@ -4883,7 +4863,6 @@ task.spawn(function()
     UICorner.CornerRadius = UDim.new(1, 0)
     UICorner.Parent = ToggleButton
 
-    -- Thêm viền nổi cho nút toggle
     local ToggleStroke = Instance.new("UIStroke")
     ToggleStroke.Name = "ToggleStroke"
     ToggleStroke.Thickness = 1
@@ -4891,12 +4870,10 @@ task.spawn(function()
     ToggleStroke.LineJoinMode = Enum.LineJoinMode.Round
     ToggleStroke.Parent = ToggleButton
 
-    -- Màu sắc cho hiệu ứng cầu vồng (như code mẫu)
     local RainbowColors = {
         Color3.fromRGB(255,255,255)
     }
 
-    -- Hiệu ứng đổi màu viền
     local colorIndex = 1
     task.spawn(function()
         while ToggleButton and ToggleButton.Parent do
