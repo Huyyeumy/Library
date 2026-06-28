@@ -50,8 +50,7 @@ local bearlib = {
         return {}
     end)(),
     AllElements = {},
-    ThunderActive = false,
-    KeySystem = {}
+    ThunderActive = false
 }
 
 local ViewportSize = workspace.CurrentCamera.ViewportSize
@@ -548,6 +547,7 @@ local ToggleGui = nil
 local MinimizedBar = nil
 local NotificationHolder = nil
 local MaximizeButton = nil
+local SettingsButton = nil -- Thêm biến SettingsButton
 local IsMaximized = false
 local OriginalUISize = nil
 local SmallBar = nil
@@ -706,6 +706,10 @@ local function RefreshAllUIElements()
     if MaximizeButton then
         MaximizeButton.ImageColor3 = Theme["Color Text"]
     end
+    -- Thêm cập nhật màu cho SettingsButton
+    if SettingsButton then
+        SettingsButton.ImageColor3 = Theme["Color Text"]
+    end
 
     if MinimizedBar then
         ApplyRoundedCorners(MinimizedBar, UDim.new(1, 0))
@@ -832,573 +836,6 @@ local function SaveBarPosition()
         BarPosition = bearlib.Save.BarPosition
         SaveJson("bearlib.json", bearlib.Save)
     end
-end
-
-local function CheckKey(inputKey, validKeys)
-    if not validKeys or #validKeys == 0 then
-        return false
-    end
-    
-    inputKey = string.gsub(inputKey, "^%s*(.-)%s*$", "%1")
-    for _, key in ipairs(validKeys) do
-        if string.upper(inputKey) == string.upper(key) then
-            return true
-        end
-    end
-    return false
-end
-
-function bearlib:CreateKeySystem(Config)
-    bearlib.KeySystem = bearlib.KeySystem or {}
-    bearlib.KeySystem.Config = Config
-    bearlib.KeySystem.ValidKeys = Config.Keys or {}
-    bearlib.KeySystem.IsKeyValidated = false
-    bearlib.KeySystem.Callback = nil
-    bearlib.KeySystem.ValidatedKey = nil
-    
-    local LocalPlayer = Players.LocalPlayer
-    if not LocalPlayer then
-        print("⏳ Đợi LocalPlayer...")
-        Players:GetPropertyChangedSignal("LocalPlayer"):Wait()
-        LocalPlayer = Players.LocalPlayer
-    end
-    
-    local KeyInputFrame = Instance.new("ScreenGui")
-    KeyInputFrame.Name = "KeyInputGui"
-    KeyInputFrame.Parent = LocalPlayer.PlayerGui
-    KeyInputFrame.ResetOnSpawn = false
-    bearlib.KeySystem.KeyInputFrame = KeyInputFrame
-    
-    local MainFrame = Instance.new("Frame")
-    MainFrame.Name = "MainFrame"
-    MainFrame.Parent = KeyInputFrame
-    MainFrame.BackgroundColor3 = Theme["Color Hub 2"] or Color3.fromRGB(15, 15, 25)
-    MainFrame.BorderSizePixel = 2
-    MainFrame.BorderColor3 = Theme["Color Stroke"] or Color3.fromRGB(255, 255, 255)
-    MainFrame.Position = UDim2.new(0.5, -200, 0.5, -150)
-    MainFrame.Size = UDim2.new(0, 0, 0, 0)
-    MainFrame.Active = true
-    MainFrame.ClipsDescendants = true
-    
-    local MainCorner = Instance.new("UICorner")
-    MainCorner.Parent = MainFrame
-    MainCorner.CornerRadius = UDim.new(0, Theme["Corner Radius"] or 12)
-    
-    local DragBar = Instance.new("Frame")
-    DragBar.Name = "DragBar"
-    DragBar.Parent = MainFrame
-    DragBar.BackgroundTransparency = 1
-    DragBar.Position = UDim2.new(0, 0, 0, 0)
-    DragBar.Size = UDim2.new(1, 0, 0, 28)
-    DragBar.ZIndex = 50
-    DragBar.Active = true
-    
-    local DragStart, StartPos, InputOn
-    
-    local function UpdateDrag(Input)
-        local delta = Input.Position - DragStart
-        local Position = UDim2.new(StartPos.X.Scale, StartPos.X.Offset + delta.X, StartPos.Y.Scale, StartPos.Y.Offset + delta.Y)
-        MainFrame.Position = Position
-    end
-    
-    DragBar.InputBegan:Connect(function(Input)
-        if Input.UserInputType == Enum.UserInputType.MouseButton1 or Input.UserInputType == Enum.UserInputType.Touch then
-            InputOn = true
-            StartPos = MainFrame.Position
-            DragStart = Input.Position
-        end
-    end)
-    
-    DragBar.InputEnded:Connect(function(Input)
-        if Input.UserInputType == Enum.UserInputType.MouseButton1 or Input.UserInputType == Enum.UserInputType.Touch then
-            InputOn = false
-        end
-    end)
-    
-    UserInputService.InputChanged:Connect(function(Input)
-        if InputOn and (Input.UserInputType == Enum.UserInputType.MouseMovement or Input.UserInputType == Enum.UserInputType.Touch) then
-            UpdateDrag(Input)
-        end
-    end)
-    
-    local CloseButton = Instance.new("ImageButton")
-    CloseButton.Name = "CloseButton"
-    CloseButton.Parent = MainFrame
-    CloseButton.BackgroundTransparency = 1
-    CloseButton.BorderSizePixel = 0
-    CloseButton.Position = UDim2.new(1, -32, 0, 8)
-    CloseButton.Size = UDim2.new(0, 20, 0, 20)
-    CloseButton.Image = "rbxassetid://10747384394"
-    CloseButton.ImageColor3 = Theme["Color Text"] or Color3.fromRGB(255, 255, 255)
-    CloseButton.ZIndex = 60
-    CloseButton.AutoButtonColor = false
-    
-    CloseButton.MouseEnter:Connect(function()
-        CloseButton.ImageColor3 = Color3.fromRGB(255, 80, 80)
-    end)
-    
-    CloseButton.MouseLeave:Connect(function()
-        CloseButton.ImageColor3 = Theme["Color Text"] or Color3.fromRGB(255, 255, 255)
-    end)
-    
-    CloseButton.MouseButton1Click:Connect(function()
-        KeyInputFrame:Destroy()
-        bearlib.KeySystem.IsKeyValidated = false
-    end)
-    
-    local TabBar = Instance.new("Frame")
-    TabBar.Name = "TabBar"
-    TabBar.Parent = MainFrame
-    TabBar.BackgroundColor3 = Theme["Color Hub 1"] or Color3.fromRGB(25, 25, 40)
-    TabBar.BorderSizePixel = 0
-    TabBar.Position = UDim2.new(0, 0, 0, 0)
-    TabBar.Size = UDim2.new(1, 0, 0, 35)
-    
-    local TabBarCorner = Instance.new("UICorner")
-    TabBarCorner.Parent = TabBar
-    TabBarCorner.CornerRadius = UDim.new(0, 12)
-    
-    local TabBarMask = Instance.new("Frame")
-    TabBarMask.Name = "TabBarMask"
-    TabBarMask.Parent = TabBar
-    TabBarMask.BackgroundColor3 = Theme["Color Hub 1"] or Color3.fromRGB(25, 25, 40)
-    TabBarMask.BorderSizePixel = 0
-    TabBarMask.Position = UDim2.new(0, 0, 0, 12)
-    TabBarMask.Size = UDim2.new(1, 0, 1, -12)
-    TabBarMask.ZIndex = 2
-    
-    local LogoButton = Instance.new("ImageButton")
-    LogoButton.Name = "LogoButton"
-    LogoButton.Parent = TabBar
-    LogoButton.BackgroundTransparency = 1
-    LogoButton.BorderSizePixel = 0
-    LogoButton.Position = UDim2.new(0, 8, 0.5, 0)
-    LogoButton.AnchorPoint = Vector2.new(0, 0.5)
-    LogoButton.Size = UDim2.new(0, 22, 0, 22)
-    LogoButton.Image = "rbxassetid://76571437829227"
-    LogoButton.ImageColor3 = Theme["Color Text"] or Color3.fromRGB(255, 255, 255)
-    LogoButton.ZIndex = 60
-    LogoButton.AutoButtonColor = false
-    LogoButton.ScaleType = Enum.ScaleType.Fit
-    
-    LogoButton.MouseEnter:Connect(function()
-        LogoButton.ImageColor3 = Color3.fromRGB(255, 215, 0)
-    end)
-    
-    LogoButton.MouseLeave:Connect(function()
-        LogoButton.ImageColor3 = Theme["Color Text"] or Color3.fromRGB(255, 255, 255)
-    end)
-    
-    local CenterFrame = Instance.new("Frame")
-    CenterFrame.Name = "CenterFrame"
-    CenterFrame.Parent = TabBar
-    CenterFrame.BackgroundTransparency = 1
-    CenterFrame.Position = UDim2.new(0.5, 0, 0.5, 0)
-    CenterFrame.AnchorPoint = Vector2.new(0.5, 0.5)
-    CenterFrame.Size = UDim2.new(0, 180, 1, 0)
-    CenterFrame.ZIndex = 10
-    CenterFrame.Active = true
-    
-    local Tab1 = Instance.new("TextButton")
-    Tab1.Name = "Tab1"
-    Tab1.Parent = CenterFrame
-    Tab1.BackgroundTransparency = 1
-    Tab1.Position = UDim2.new(0, 0, 0, 0)
-    Tab1.Size = UDim2.new(0.5, 0, 1, 0)
-    Tab1.Font = Enum.Font.GothamBold
-    Tab1.Text = Config.Title or "KEY SYSTEM"
-    Tab1.TextColor3 = Theme["Color Text"] or Color3.fromRGB(255, 255, 255)
-    Tab1.TextSize = 13
-    Tab1.TextScaled = false
-    Tab1.ZIndex = 60
-    Tab1.AutoButtonColor = false
-    
-    local Tab2 = Instance.new("TextButton")
-    Tab2.Name = "Tab2"
-    Tab2.Parent = CenterFrame
-    Tab2.BackgroundTransparency = 1
-    Tab2.Position = UDim2.new(0.5, 0, 0, 0)
-    Tab2.Size = UDim2.new(0.5, 0, 1, 0)
-    Tab2.Font = Enum.Font.GothamBold
-    Tab2.Text = "INFO"
-    Tab2.TextColor3 = Color3.fromRGB(200, 200, 200)
-    Tab2.TextSize = 13
-    Tab2.TextScaled = false
-    Tab2.ZIndex = 60
-    Tab2.AutoButtonColor = false
-    
-    local TabIndicator = Instance.new("Frame")
-    TabIndicator.Name = "TabIndicator"
-    TabIndicator.Parent = CenterFrame
-    TabIndicator.BackgroundColor3 = Theme["Color Theme"] or Color3.fromRGB(0, 120, 255)
-    TabIndicator.BorderSizePixel = 0
-    TabIndicator.Position = UDim2.new(0, 0, 0, 33)
-    TabIndicator.Size = UDim2.new(0.5, 0, 0, 2)
-    TabIndicator.ZIndex = 60
-    
-    local ContentFrame = Instance.new("Frame")
-    ContentFrame.Name = "ContentFrame"
-    ContentFrame.Parent = MainFrame
-    ContentFrame.BackgroundTransparency = 1
-    ContentFrame.Position = UDim2.new(0, 0, 0, 35)
-    ContentFrame.Size = UDim2.new(1, 0, 1, -35)
-    ContentFrame.ClipsDescendants = true
-    
-    local KeyPanel = Instance.new("Frame")
-    KeyPanel.Name = "KeyPanel"
-    KeyPanel.Parent = ContentFrame
-    KeyPanel.BackgroundTransparency = 1
-    KeyPanel.Position = UDim2.new(0, 0, 0, 0)
-    KeyPanel.Size = UDim2.new(1, 0, 1, 0)
-    KeyPanel.Visible = true
-    
-    local TitleLabel = Instance.new("TextLabel")
-    TitleLabel.Name = "TitleLabel"
-    TitleLabel.Parent = KeyPanel
-    TitleLabel.BackgroundTransparency = 1
-    TitleLabel.Position = UDim2.new(0, 0, 0, 15)
-    TitleLabel.Size = UDim2.new(1, 0, 0, 30)
-    TitleLabel.Font = Enum.Font.GothamBold
-    TitleLabel.Text = Config.Title or "KEY SYSTEM"
-    TitleLabel.TextColor3 = Theme["Color Text"] or Color3.fromRGB(255, 255, 255)
-    TitleLabel.TextSize = 20
-    TitleLabel.TextStrokeColor3 = Color3.fromRGB(0, 0, 0)
-    TitleLabel.TextStrokeTransparency = 0.3
-    
-    local KeyTextBox = Instance.new("TextBox")
-    KeyTextBox.Name = "KeyTextBox"
-    KeyTextBox.Parent = KeyPanel
-    KeyTextBox.BackgroundColor3 = Color3.fromRGB(40, 40, 55)
-    KeyTextBox.BorderSizePixel = 1
-    KeyTextBox.BorderColor3 = Theme["Color Stroke"] or Color3.fromRGB(255, 255, 255)
-    KeyTextBox.Position = UDim2.new(0.1, 0, 0.3, 0)
-    KeyTextBox.Size = UDim2.new(0.8, 0, 0, 40)
-    KeyTextBox.Font = Enum.Font.Gotham
-    KeyTextBox.PlaceholderText = "Enter key here..."
-    KeyTextBox.Text = ""
-    KeyTextBox.TextColor3 = Theme["Color Text"] or Color3.fromRGB(255, 255, 255)
-    KeyTextBox.TextSize = 16
-    KeyTextBox.ClearTextOnFocus = false
-    
-    local TextBoxCorner = Instance.new("UICorner")
-    TextBoxCorner.Parent = KeyTextBox
-    TextBoxCorner.CornerRadius = UDim.new(0, 6)
-    
-    local ButtonFrameKS = Instance.new("Frame")
-    ButtonFrameKS.Name = "ButtonFrame"
-    ButtonFrameKS.Parent = KeyPanel
-    ButtonFrameKS.BackgroundTransparency = 1
-    ButtonFrameKS.Position = UDim2.new(0.05, 0, 0.55, 0)
-    ButtonFrameKS.Size = UDim2.new(0.9, 0, 0, 40)
-    
-    local SubmitButton = Instance.new("TextButton")
-    SubmitButton.Name = "SubmitButton"
-    SubmitButton.Parent = ButtonFrameKS
-    SubmitButton.BackgroundColor3 = Color3.fromRGB(0, 120, 255)
-    SubmitButton.BorderSizePixel = 1
-    SubmitButton.BorderColor3 = Color3.fromRGB(255, 255, 255)
-    SubmitButton.Position = UDim2.new(0, 0, 0, 0)
-    SubmitButton.Size = UDim2.new(0.48, 0, 1, 0)
-    SubmitButton.Font = Enum.Font.GothamBold
-    SubmitButton.Text = "SUBMIT"
-    SubmitButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-    SubmitButton.TextSize = 16
-    SubmitButton.TextScaled = false
-    SubmitButton.AutoButtonColor = false
-    
-    local ButtonCorner1 = Instance.new("UICorner")
-    ButtonCorner1.Parent = SubmitButton
-    ButtonCorner1.CornerRadius = UDim.new(0, 6)
-    
-    local GetKeyButton = Instance.new("TextButton")
-    GetKeyButton.Name = "GetKeyButton"
-    GetKeyButton.Parent = ButtonFrameKS
-    GetKeyButton.BackgroundColor3 = Color3.fromRGB(220, 50, 50)
-    GetKeyButton.BorderSizePixel = 1
-    GetKeyButton.BorderColor3 = Color3.fromRGB(255, 255, 255)
-    GetKeyButton.Position = UDim2.new(0.52, 0, 0, 0)
-    GetKeyButton.Size = UDim2.new(0.48, 0, 1, 0)
-    GetKeyButton.Font = Enum.Font.GothamBold
-    GetKeyButton.Text = "GET KEY"
-    GetKeyButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-    GetKeyButton.TextSize = 16
-    GetKeyButton.TextScaled = false
-    GetKeyButton.AutoButtonColor = false
-    
-    local ButtonCorner2 = Instance.new("UICorner")
-    ButtonCorner2.Parent = GetKeyButton
-    ButtonCorner2.CornerRadius = UDim.new(0, 6)
-    
-    local StatusLabel = Instance.new("TextLabel")
-    StatusLabel.Name = "StatusLabel"
-    StatusLabel.Parent = KeyPanel
-    StatusLabel.BackgroundTransparency = 1
-    StatusLabel.Position = UDim2.new(0, 0, 0.82, 0)
-    StatusLabel.Size = UDim2.new(1, 0, 0, 25)
-    StatusLabel.Font = Enum.Font.Gotham
-    StatusLabel.Text = "Enter key to continue"
-    StatusLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
-    StatusLabel.TextSize = 14
-    StatusLabel.TextScaled = false
-    
-    local InfoPanel = Instance.new("Frame")
-    InfoPanel.Name = "InfoPanel"
-    InfoPanel.Parent = ContentFrame
-    InfoPanel.BackgroundTransparency = 1
-    InfoPanel.Position = UDim2.new(0, 0, 0, 0)
-    InfoPanel.Size = UDim2.new(1, 0, 1, 0)
-    InfoPanel.Visible = false
-    
-    local InfoTitle = Instance.new("TextLabel")
-    InfoTitle.Name = "InfoTitle"
-    InfoTitle.Parent = InfoPanel
-    InfoTitle.BackgroundTransparency = 1
-    InfoTitle.Position = UDim2.new(0, 0, 0, 15)
-    InfoTitle.Size = UDim2.new(1, 0, 0, 30)
-    InfoTitle.Font = Enum.Font.GothamBold
-    InfoTitle.Text = "INSTRUCTIONS"
-    InfoTitle.TextColor3 = Theme["Color Text"] or Color3.fromRGB(255, 255, 255)
-    InfoTitle.TextSize = 20
-    InfoTitle.TextStrokeColor3 = Color3.fromRGB(0, 0, 0)
-    InfoTitle.TextStrokeTransparency = 0.3
-    
-    local InfoText = Instance.new("TextLabel")
-    InfoText.Name = "InfoText"
-    InfoText.Parent = InfoPanel
-    InfoText.BackgroundTransparency = 1
-    InfoText.Position = UDim2.new(0.08, 0, 0.15, 0)
-    InfoText.Size = UDim2.new(0.85, 0, 0.6, 0)
-    InfoText.Font = Enum.Font.Gotham
-    InfoText.Text = Config.Description or "INSTRUCTIONS\n\n• Enter your key in the box below\n• Press 'GET KEY' to copy the key\n• Valid key will activate the feature\n\nContact:\nsupport@example.com"
-    InfoText.TextColor3 = Theme["Color Dark Text"] or Color3.fromRGB(220, 220, 230)
-    InfoText.TextSize = 14
-    InfoText.TextXAlignment = Enum.TextXAlignment.Left
-    InfoText.TextYAlignment = Enum.TextYAlignment.Top
-    InfoText.TextScaled = false
-    InfoText.LineHeight = 1.3
-    
-    local CloseInfoButton = Instance.new("TextButton")
-    CloseInfoButton.Name = "CloseInfoButton"
-    CloseInfoButton.Parent = InfoPanel
-    CloseInfoButton.BackgroundColor3 = Theme["Color Theme"] or Color3.fromRGB(0, 100, 220)
-    CloseInfoButton.BorderSizePixel = 1
-    CloseInfoButton.BorderColor3 = Theme["Color Stroke"] or Color3.fromRGB(255, 255, 255)
-    CloseInfoButton.Position = UDim2.new(0.3, 0, 0.82, 0)
-    CloseInfoButton.Size = UDim2.new(0.4, 0, 0, 35)
-    CloseInfoButton.Font = Enum.Font.GothamBold
-    CloseInfoButton.Text = "BACK"
-    CloseInfoButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-    CloseInfoButton.TextSize = 16
-    CloseInfoButton.AutoButtonColor = false
-    
-    local CloseCorner = Instance.new("UICorner")
-    CloseCorner.Parent = CloseInfoButton
-    CloseCorner.CornerRadius = UDim.new(0, 6)
-    
-    local function SwitchTab(tabIndex)
-        if tabIndex == 1 then
-            KeyPanel.Visible = true
-            InfoPanel.Visible = false
-            Tab1.TextColor3 = Theme["Color Text"] or Color3.fromRGB(255, 255, 255)
-            Tab2.TextColor3 = Color3.fromRGB(200, 200, 200)
-            TabIndicator:TweenPosition(
-                UDim2.new(0, 0, 0, 33),
-                Enum.EasingDirection.Out,
-                Enum.EasingStyle.Quad,
-                0.3,
-                true
-            )
-        else
-            KeyPanel.Visible = false
-            InfoPanel.Visible = true
-            Tab1.TextColor3 = Color3.fromRGB(200, 200, 200)
-            Tab2.TextColor3 = Theme["Color Text"] or Color3.fromRGB(255, 255, 255)
-            TabIndicator:TweenPosition(
-                UDim2.new(0.5, 0, 0, 33),
-                Enum.EasingDirection.Out,
-                Enum.EasingStyle.Quad,
-                0.3,
-                true
-            )
-        end
-    end
-    
-    Tab1.MouseButton1Click:Connect(function() SwitchTab(1) end)
-    Tab2.MouseButton1Click:Connect(function() SwitchTab(2) end)
-    CloseInfoButton.MouseButton1Click:Connect(function() SwitchTab(1) end)
-    
-    Tab1.MouseEnter:Connect(function()
-        if KeyPanel.Visible == false then
-            Tab1.TextColor3 = Theme["Color Text"] or Color3.fromRGB(255, 255, 255)
-        end
-    end)
-    
-    Tab1.MouseLeave:Connect(function()
-        if KeyPanel.Visible == false then
-            Tab1.TextColor3 = Color3.fromRGB(200, 200, 200)
-        end
-    end)
-    
-    Tab2.MouseEnter:Connect(function()
-        if InfoPanel.Visible == false then
-            Tab2.TextColor3 = Theme["Color Text"] or Color3.fromRGB(255, 255, 255)
-        end
-    end)
-    
-    Tab2.MouseLeave:Connect(function()
-        if InfoPanel.Visible == false then
-            Tab2.TextColor3 = Color3.fromRGB(200, 200, 200)
-        end
-    end)
-    
-    SubmitButton.MouseEnter:Connect(function()
-        SubmitButton.BackgroundColor3 = Color3.fromRGB(30, 150, 255)
-    end)
-    
-    SubmitButton.MouseLeave:Connect(function()
-        SubmitButton.BackgroundColor3 = Color3.fromRGB(0, 120, 255)
-    end)
-    
-    GetKeyButton.MouseEnter:Connect(function()
-        GetKeyButton.BackgroundColor3 = Color3.fromRGB(255, 80, 80)
-    end)
-    
-    GetKeyButton.MouseLeave:Connect(function()
-        GetKeyButton.BackgroundColor3 = Color3.fromRGB(220, 50, 50)
-    end)
-    
-    CloseInfoButton.MouseEnter:Connect(function()
-        CloseInfoButton.BackgroundColor3 = Color3.fromRGB(30, 130, 240)
-    end)
-    
-    CloseInfoButton.MouseLeave:Connect(function()
-        CloseInfoButton.BackgroundColor3 = Theme["Color Theme"] or Color3.fromRGB(0, 100, 220)
-    end)
-    
-    local function ProcessKey(key)
-        key = string.gsub(key, "^%s*(.-)%s*$", "%1")
-        
-        if key == "" then
-            StatusLabel.Text = "Please enter a key!"
-            StatusLabel.TextColor3 = Color3.fromRGB(255, 200, 0)
-            return false
-        end
-        
-        StatusLabel.Text = "Checking key..."
-        StatusLabel.TextColor3 = Color3.fromRGB(255, 200, 0)
-        
-        local isValid = CheckKey(key, bearlib.KeySystem.ValidKeys)
-        
-        if isValid then
-            StatusLabel.Text = Config.Notifi and Config.Notifi.CorrectKey or "Valid key! Processing..."
-            StatusLabel.TextColor3 = Color3.fromRGB(0, 255, 0)
-            
-            if Config.Notifi and Config.Notifi.Notifications then
-                bearlib:Notify({
-                    Title = "Key System",
-                    Message = Config.Notifi.CorrectKey or "Key validated successfully!",
-                    Duration = 3
-                })
-            end
-            
-            bearlib.KeySystem.IsKeyValidated = true
-            bearlib.KeySystem.ValidatedKey = key
-            
-            task.wait(0.5)
-            MainFrame:TweenSizeAndPosition(
-                UDim2.new(0, 0, 0, 0),
-                UDim2.new(0.5, 0, 0.5, 0),
-                Enum.EasingDirection.Out,
-                Enum.EasingStyle.Quad,
-                0.3,
-                true
-            )
-            task.wait(0.3)
-            KeyInputFrame:Destroy()
-            
-            if bearlib.KeySystem.Callback then
-                bearlib.KeySystem.Callback(key)
-            end
-            
-            return true
-        else
-            StatusLabel.Text = Config.Notifi and Config.Notifi.Incorrectkey or "Invalid key!"
-            StatusLabel.TextColor3 = Color3.fromRGB(255, 50, 50)
-            
-            if Config.Notifi and Config.Notifi.Notifications then
-                bearlib:Notify({
-                    Title = "Key System",
-                    Message = Config.Notifi.Incorrectkey or "Invalid key! Please try again.",
-                    Duration = 3
-                })
-            end
-            return false
-        end
-    end
-    
-    local function GetKey()
-        local keyLink = Config.KeyLink or ""
-        if type(setclipboard) == "function" then
-            pcall(setclipboard, keyLink)
-            StatusLabel.Text = Config.Notifi and Config.Notifi.CopyKeyLink or "Link copied to clipboard!"
-            StatusLabel.TextColor3 = Color3.fromRGB(0, 255, 0)
-            
-            if Config.Notifi and Config.Notifi.Notifications then
-                bearlib:Notify({
-                    Title = "Key System",
-                    Message = Config.Notifi.CopyKeyLink or "Link copied to clipboard!",
-                    Duration = 2
-                })
-            end
-        else
-            StatusLabel.Text = "Cannot copy! Link: " .. keyLink
-            StatusLabel.TextColor3 = Color3.fromRGB(255, 200, 0)
-        end
-    end
-    
-    KeyTextBox.FocusLost:Connect(function(enterPressed)
-        if enterPressed then
-            ProcessKey(KeyTextBox.Text)
-        end
-    end)
-    
-    SubmitButton.MouseButton1Click:Connect(function()
-        ProcessKey(KeyTextBox.Text)
-    end)
-    
-    GetKeyButton.MouseButton1Click:Connect(function()
-        GetKey()
-    end)
-    
-    MainFrame.Visible = false
-    MainFrame.Size = UDim2.new(0, 0, 0, 0)
-    task.wait(0.1)
-    MainFrame.Visible = true
-    MainFrame:TweenSize(
-        UDim2.new(0, 400, 0, 300),
-        Enum.EasingDirection.Out,
-        Enum.EasingStyle.Quad,
-        0.4,
-        true
-    )
-    
-    print("🔐 Key System ready!")
-    print("✅ Valid keys: " .. table.concat(bearlib.KeySystem.ValidKeys, ", "))
-    
-    return {
-        SetCallback = function(callback)
-            bearlib.KeySystem.Callback = callback
-        end,
-        IsValidated = function()
-            return bearlib.KeySystem.IsKeyValidated
-        end,
-        GetKey = function()
-            return bearlib.KeySystem.ValidatedKey or ""
-        end,
-        Destroy = function()
-            KeyInputFrame:Destroy()
-        end
-    }
 end
 
 function bearlib:MakeWindow(Configs)
@@ -1764,10 +1201,23 @@ function bearlib:MakeWindow(Configs)
         Name = "Minimize"
     })
 
+    -- Tạo SettingsButton
+    SettingsButton = Create("ImageButton", {
+        Size = UDim2.new(0, 14, 0, 14),
+        Position = UDim2.new(1, -85, 0.5),
+        AnchorPoint = Vector2.new(1, 0.5),
+        BackgroundTransparency = 1,
+        Image = "rbxassetid://16170640476",
+        ImageColor3 = Theme["Color Text"],
+        AutoButtonColor = false,
+        Name = "Settings"
+    })
+
     SetChildren(ButtonsFolder, {
         CloseButton,
         MaximizeButton,
-        MinimizeButton
+        MinimizeButton,
+        SettingsButton
     })
 
     local Window = {}
@@ -5046,8 +4496,7 @@ local function CreateNotification(Icon, Title, Message, Duration)
     IconImage.ZIndex = 1003
 
     local TextContainer = Instance.new("Frame")
-    TextContainer.Parent = Notification
-    TextContainer.Size = UDim2.new(1, -80, 0, 0)
+    TextContainer.Parent = Notification    TextContainer.Size = UDim2.new(1, -80, 0, 0)
     TextContainer.AutomaticSize = Enum.AutomaticSize.Y
     TextContainer.BackgroundTransparency = 1
     TextContainer.BorderSizePixel = 0
