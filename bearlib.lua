@@ -1705,7 +1705,7 @@ function Window:Dialog(Configs)
     local DOptions = Configs[3] or Configs.Options or {}
 
     local Screen = InsertTheme(Create("Frame", MainFrame, {
-        BackgroundTransparency = 0,
+        BackgroundTransparency = 0.5,
         BackgroundColor3 = Color3.fromRGB(0, 0, 0),
         Active = true,
         Size = UDim2.new(1, 0, 1, 0),
@@ -1716,11 +1716,11 @@ function Window:Dialog(Configs)
 
     local Frame = Create("Frame", Screen, {
         Active = true,
-        Size = UDim2.fromOffset(0, 0),
+        Size = UDim2.fromOffset(420, 270),
         Position = UDim2.fromScale(0.5, 0.5),
         AnchorPoint = Vector2.new(0.5, 0.5),
         BackgroundColor3 = Theme["Color Hub 2"],
-        BackgroundTransparency = 1,
+        BackgroundTransparency = 0,
         ZIndex = 200,
         ClipsDescendants = true
     })
@@ -1830,10 +1830,10 @@ function Window:Dialog(Configs)
         BtnCorner.Parent = Btn
 
         Btn.MouseEnter:Connect(function()
-            CreateTween({Btn, "BackgroundTransparency", 0.2, 0.2})
+            Btn.BackgroundTransparency = 0.2
         end)
         Btn.MouseLeave:Connect(function()
-            CreateTween({Btn, "BackgroundTransparency", 0, 0.2})
+            Btn.BackgroundTransparency = 0
         end)
 
         Btn.Activated:Connect(function()
@@ -1843,23 +1843,12 @@ function Window:Dialog(Configs)
     end
 
     function Dialog:Close()
-        -- Hiệu ứng đóng giống hệt hiệu ứng mở nhưng đảo ngược
-        CreateTween({Frame, "Size", UDim2.fromOffset(0, 0), 0.3})
-        CreateTween({Frame, "BackgroundTransparency", 1, 0.25})
-        CreateTween({Frame, "Position", UDim2.fromScale(0.5, 0.5), 0.3})
-        CreateTween({Screen, "BackgroundTransparency", 0, 0.3, true})
-        task.wait(0.3)
         Screen:Destroy()
     end
 
     for _, opt in pairs(DOptions) do
         Dialog:Button(opt)
     end
-
-    -- Hiệu ứng mở
-    CreateTween({Frame, "Size", UDim2.fromOffset(420, 270), 0.3})
-    CreateTween({Frame, "BackgroundTransparency", 0, 0.25})
-    CreateTween({Screen, "BackgroundTransparency", 0.5, 0.3})
 
     return Dialog
 end
