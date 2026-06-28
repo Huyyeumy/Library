@@ -1705,7 +1705,7 @@ function Window:Dialog(Configs)
     local DOptions = Configs[3] or Configs.Options or {}
 
     local Screen = InsertTheme(Create("Frame", MainFrame, {
-        BackgroundTransparency = 0.5,
+        BackgroundTransparency = 0,
         BackgroundColor3 = Color3.fromRGB(0, 0, 0),
         Active = true,
         Size = UDim2.new(1, 0, 1, 0),
@@ -1716,11 +1716,11 @@ function Window:Dialog(Configs)
 
     local Frame = Create("Frame", Screen, {
         Active = true,
-        Size = UDim2.fromOffset(400, 250),
+        Size = UDim2.fromOffset(0, 0),
         Position = UDim2.fromScale(0.5, 0.5),
         AnchorPoint = Vector2.new(0.5, 0.5),
         BackgroundColor3 = Theme["Color Hub 2"],
-        BackgroundTransparency = 0,
+        BackgroundTransparency = 1,
         ZIndex = 200,
         ClipsDescendants = true
     })
@@ -1831,10 +1831,10 @@ function Window:Dialog(Configs)
         BtnCorner.Parent = Btn
 
         Btn.MouseEnter:Connect(function()
-            Btn.BackgroundTransparency = 0.2
+            CreateTween({Btn, "BackgroundTransparency", 0.2, 0.2})
         end)
         Btn.MouseLeave:Connect(function()
-            Btn.BackgroundTransparency = 0
+            CreateTween({Btn, "BackgroundTransparency", 0, 0.2})
         end)
 
         Btn.Activated:Connect(function()
@@ -1844,9 +1844,12 @@ function Window:Dialog(Configs)
     end
 
     function Dialog:Close()
-        CreateTween({Frame, "Size", UDim2.fromOffset(380, 230), 0.15})
-        CreateTween({Frame, "BackgroundTransparency", 1, 0.15})
-        CreateTween({Screen, "BackgroundTransparency", 1, 0.15, true})
+        -- Hiệu ứng đóng mượt mà
+        CreateTween({Frame, "Size", UDim2.fromOffset(350, 220), 0.15})
+        CreateTween({Frame, "BackgroundTransparency", 1, 0.25})
+        CreateTween({Frame, "Position", UDim2.fromScale(0.5, 0.6), 0.25})
+        CreateTween({Screen, "BackgroundTransparency", 1, 0.3, true})
+        task.wait(0.3)
         Screen:Destroy()
     end
 
@@ -1854,9 +1857,14 @@ function Window:Dialog(Configs)
         Dialog:Button(opt)
     end
 
-    CreateTween({Frame, "Size", UDim2.fromOffset(420, 270), 0.2})
-    CreateTween({Frame, "BackgroundTransparency", 0, 0.15})
-    CreateTween({Screen, "BackgroundTransparency", 0.5, 0.15})
+    -- Hiệu ứng mở mượt mà
+    Frame.Size = UDim2.fromOffset(0, 0)
+    Frame.BackgroundTransparency = 1
+    Screen.BackgroundTransparency = 0
+    
+    CreateTween({Frame, "Size", UDim2.fromOffset(420, 270), 0.3})
+    CreateTween({Frame, "BackgroundTransparency", 0, 0.25})
+    CreateTween({Screen, "BackgroundTransparency", 0.5, 0.3})
 
     return Dialog
 end
