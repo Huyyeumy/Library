@@ -1747,7 +1747,6 @@ function Window:Dialog(Configs)
     
     local Dialog = {}
     
-    -- Nút X góc trên
     local CloseBtn = Create("ImageButton", Frame, {
         Size = UDim2.new(0, 28, 0, 28),
         Position = UDim2.new(1, -12, 0, 12),
@@ -1844,11 +1843,11 @@ function Window:Dialog(Configs)
     end
 
     function Dialog:Close()
-        -- Hiệu ứng đóng mượt mà
-        CreateTween({Frame, "Size", UDim2.fromOffset(350, 220), 0.15})
+        -- Hiệu ứng đóng giống hệt hiệu ứng mở nhưng đảo ngược
+        CreateTween({Frame, "Size", UDim2.fromOffset(0, 0), 0.3})
         CreateTween({Frame, "BackgroundTransparency", 1, 0.25})
-        CreateTween({Frame, "Position", UDim2.fromScale(0.5, 0.6), 0.25})
-        CreateTween({Screen, "BackgroundTransparency", 1, 0.3, true})
+        CreateTween({Frame, "Position", UDim2.fromScale(0.5, 0.5), 0.3})
+        CreateTween({Screen, "BackgroundTransparency", 0, 0.3, true})
         task.wait(0.3)
         Screen:Destroy()
     end
@@ -1857,11 +1856,7 @@ function Window:Dialog(Configs)
         Dialog:Button(opt)
     end
 
-    -- Hiệu ứng mở mượt mà
-    Frame.Size = UDim2.fromOffset(0, 0)
-    Frame.BackgroundTransparency = 1
-    Screen.BackgroundTransparency = 0
-    
+    -- Hiệu ứng mở
     CreateTween({Frame, "Size", UDim2.fromOffset(420, 270), 0.3})
     CreateTween({Frame, "BackgroundTransparency", 0, 0.25})
     CreateTween({Screen, "BackgroundTransparency", 0.5, 0.3})
