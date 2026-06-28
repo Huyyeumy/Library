@@ -1716,7 +1716,7 @@ function Window:Dialog(Configs)
 
     local Frame = Create("Frame", Screen, {
         Active = true,
-        Size = UDim2.fromOffset(500, 320),
+        Size = UDim2.fromOffset(400, 250),
         Position = UDim2.fromScale(0.5, 0.5),
         AnchorPoint = Vector2.new(0.5, 0.5),
         BackgroundColor3 = Theme["Color Hub 2"],
@@ -1745,27 +1745,42 @@ function Window:Dialog(Configs)
     Gradient.Rotation = 135
     Gradient.Parent = Frame
     
+    -- Nút close góc trên
+    local CloseBtn = Create("ImageButton", Frame, {
+        Size = UDim2.new(0, 28, 0, 28),
+        Position = UDim2.new(1, -12, 0, 12),
+        AnchorPoint = Vector2.new(1, 0),
+        BackgroundTransparency = 1,
+        Image = "rbxassetid://10747384394",
+        ImageColor3 = Theme["Color Text"],
+        ZIndex = 202
+    })
+    
+    CloseBtn.Activated:Connect(function()
+        Dialog:Close()
+    end)
+    
     local Title = InsertTheme(Create("TextLabel", Frame, {
         Font = Enum.Font.GothamBold,
-        Size = UDim2.new(1, -40, 0, 45),
+        Size = UDim2.new(1, -60, 0, 38),
         Text = DTitle,
         TextXAlignment = "Left",
         TextColor3 = Theme["Color Text"],
-        TextSize = 22,
-        Position = UDim2.fromOffset(24, 18),
+        TextSize = 19,
+        Position = UDim2.fromOffset(20, 16),
         BackgroundTransparency = 1,
         ZIndex = 201
     }), "Text")
 
     local Desc = InsertTheme(Create("TextLabel", Frame, {
         Font = Enum.Font.Gotham,
-        Size = UDim2.new(1, -48, 0, 0),
+        Size = UDim2.new(1, -40, 0, 0),
         AutomaticSize = "Y",
         Text = DText,
         TextXAlignment = "Left",
         TextColor3 = Theme["Color Dark Text"],
-        TextSize = 15,
-        Position = UDim2.fromOffset(24, 75),
+        TextSize = 14,
+        Position = UDim2.fromOffset(20, 62),
         BackgroundTransparency = 1,
         TextWrapped = true,
         ZIndex = 201
@@ -1773,7 +1788,7 @@ function Window:Dialog(Configs)
 
     local Divider = Create("Frame", Frame, {
         Size = UDim2.new(1, -40, 0, 1),
-        Position = UDim2.new(0, 20, 0, 235),
+        Position = UDim2.new(0, 20, 0, 175),
         BackgroundColor3 = Theme["Color Theme"],
         BackgroundTransparency = 0.4,
         BorderSizePixel = 0,
@@ -1781,13 +1796,13 @@ function Window:Dialog(Configs)
     })
 
     local ButtonsHolder = Create("Frame", Frame, {
-        Size = UDim2.new(1, -30, 0, 65),
-        Position = UDim2.new(0, 15, 0, 245),
+        Size = UDim2.new(1, -30, 0, 55),
+        Position = UDim2.new(0, 15, 0, 185),
         BackgroundTransparency = 1,
         ZIndex = 201
     }, {
         Create("UIListLayout", {
-            Padding = UDim.new(0, 12),
+            Padding = UDim.new(0, 10),
             VerticalAlignment = "Center",
             FillDirection = "Horizontal",
             HorizontalAlignment = "Right"
@@ -1801,11 +1816,11 @@ function Window:Dialog(Configs)
         local Callback = Configs[2] or Configs.Callback or function() end
 
         local Btn = Create("TextButton", ButtonsHolder, {
-            Size = UDim2.new(0, 120, 0, 42),
+            Size = UDim2.new(0, 100, 0, 36),
             BackgroundColor3 = Theme["Color Theme"],
             Text = Name,
             TextColor3 = Theme["Color Text"],
-            TextSize = 15,
+            TextSize = 14,
             Font = Enum.Font.GothamBold,
             AutoButtonColor = false,
             ZIndex = 202
@@ -1829,7 +1844,7 @@ function Window:Dialog(Configs)
     end
 
     function Dialog:Close()
-        CreateTween({Frame, "Size", UDim2.fromOffset(480, 300), 0.15})
+        CreateTween({Frame, "Size", UDim2.fromOffset(380, 230), 0.15})
         CreateTween({Frame, "BackgroundTransparency", 1, 0.15})
         CreateTween({Screen, "BackgroundTransparency", 1, 0.15, true})
         Screen:Destroy()
@@ -1839,7 +1854,7 @@ function Window:Dialog(Configs)
         Dialog:Button(opt)
     end
 
-    CreateTween({Frame, "Size", UDim2.fromOffset(520, 340), 0.2})
+    CreateTween({Frame, "Size", UDim2.fromOffset(420, 270), 0.2})
     CreateTween({Frame, "BackgroundTransparency", 0, 0.15})
     CreateTween({Screen, "BackgroundTransparency", 0.5, 0.15})
 
