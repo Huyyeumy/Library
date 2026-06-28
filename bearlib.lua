@@ -1212,15 +1212,7 @@ function bearlib:MakeWindow(Configs)
         AutoButtonColor = false,
         Name = "Settings"
     })
-    
-   SettingsButton.Activated:Connect(function()
-    Window:Dialog({
-        Title = "Settings",
-        Text = "",
-        Options = {}
-    })
-end)
-
+   
     local InfoButton = Create("ImageButton", {
         Size = UDim2.new(0, 14, 0, 14),
         Position = UDim2.new(1, -110, 0.5),
@@ -1825,6 +1817,7 @@ function Window:Dialog(Configs)
         local Btn = Create("TextButton", ButtonsHolder, {
             Size = UDim2.new(0, 100, 0, 36),
             BackgroundColor3 = Theme["Color Theme"],
+            BackgroundTransparency = 0,
             Text = Name,
             TextColor3 = Theme["Color Text"],
             TextSize = 14,
@@ -1838,7 +1831,7 @@ function Window:Dialog(Configs)
         BtnCorner.Parent = Btn
 
         Btn.MouseEnter:Connect(function()
-            Btn.BackgroundTransparency = 0.2
+            Btn.BackgroundTransparency = 0.3
         end)
         Btn.MouseLeave:Connect(function()
             Btn.BackgroundTransparency = 0
