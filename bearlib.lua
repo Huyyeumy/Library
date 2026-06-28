@@ -1745,7 +1745,9 @@ function Window:Dialog(Configs)
     Gradient.Rotation = 135
     Gradient.Parent = Frame
     
-    -- Nút close góc trên
+    local Dialog = {}
+    
+    -- Nút X góc trên
     local CloseBtn = Create("ImageButton", Frame, {
         Size = UDim2.new(0, 28, 0, 28),
         Position = UDim2.new(1, -12, 0, 12),
@@ -1808,8 +1810,6 @@ function Window:Dialog(Configs)
             HorizontalAlignment = "Right"
         })
     })
-
-    local Dialog = {}
 
     function Dialog:Button(Configs)
         local Name = Configs[1] or Configs.Name or "Button"
