@@ -1694,134 +1694,157 @@ function bearlib:MakeWindow(Configs)
         end
     end
 
-    function Window:Dialog(Configs)
-        if MainFrame:FindFirstChild("Dialog") then return end
-        if Minimized then
-            Window:RestoreFromBar()
-        end
-
-        local DTitle = Configs[1] or Configs.Title or "Dialog"
-        local DText = Configs[2] or Configs.Text or "This is a Dialog"
-        local DOptions = Configs[3] or Configs.Options or {}
-
-        local Frame = Create("Frame", {
-            Active = true,
-            Size = UDim2.fromOffset(250 * 1.08, 150 * 1.08),
-            Position = UDim2.fromScale(0.5, 0.5),
-            AnchorPoint = Vector2.new(0.5, 0.5),
-            ZIndex = 200
-        }, {
-            InsertTheme(Create("TextLabel", {
-                Font = Enum.Font.GothamBold,
-                Size = UDim2.new(1, 0, 0, 20),
-                Text = DTitle,
-                TextXAlignment = "Left",
-                TextColor3 = Theme["Color Text"],
-                TextSize = 15,
-                Position = UDim2.fromOffset(15, 5),
-                BackgroundTransparency = 1,
-                ZIndex = 201
-            }), "Text"),
-            InsertTheme(Create("TextLabel", {
-                Font = Enum.Font.GothamMedium,
-                Size = UDim2.new(1, -25),
-                AutomaticSize = "Y",
-                Text = DText,
-                TextXAlignment = "Left",
-                TextColor3 = Theme["Color Dark Text"],
-                TextSize = 12,
-                Position = UDim2.fromOffset(15, 25),
-                BackgroundTransparency = 1,
-                TextWrapped = true,
-                ZIndex = 201
-            }), "DarkText")
-        })
-        Make("Gradient", Frame, 270)
-        Make("Corner", Frame, UDim.new(0, 12))
-
-        local ButtonsHolder = Create("Frame", Frame, {
-            Size = UDim2.fromScale(1, 0.35),
-            Position = UDim2.fromScale(0, 1),
-            AnchorPoint = Vector2.new(0, 1),
-            BackgroundColor3 = Theme["Color Hub 2"],
-            BackgroundTransparency = 1,
-            ZIndex = 201
-        }, {
-            Create("UIListLayout", {
-                Padding = UDim.new(0, 10),
-                VerticalAlignment = "Center",
-                FillDirection = "Horizontal",
-                HorizontalAlignment = "Center"
-            })
-        })
-
-        local Screen = InsertTheme(Create("Frame", MainFrame, {
-            BackgroundTransparency = 0.6,
-            Active = true,
-            Size = UDim2.new(1, 0, 1, 0),
-            BackgroundColor3 = Theme["Color Stroke"],
-            Name = "Dialog",
-            ZIndex = 150
-        }), "Stroke")
-
-        ApplyRoundedCorners(Screen, UDim.new(0, 12))
-
-        for _, child in pairs(ButtonsHolder:GetDescendants()) do
-            if child:IsA("TextButton") then
-                ApplyRoundedCorners(child, UDim.new(0, 8))
-            end
-        end
-
-        Frame.Parent = Screen
-
-        for _, child in pairs(Frame:GetDescendants()) do
-            if child:IsA("TextLabel") or child:IsA("TextButton") or child:IsA("Frame") then
-                child.ZIndex = math.max(child.ZIndex or 1, 200)
-            end
-        end
-
-        CreateTween({Frame, "Size", UDim2.fromOffset(250, 150), 0.2})
-        CreateTween({Frame, "Transparency", 0, 0.15})
-        CreateTween({Screen, "Transparency", 0.3, 0.15})
-
-        local ButtonCount, Dialog = 1, {}
-
-        function Dialog:Button(Configs)
-            local Name = Configs[1] or Configs.Name or Configs.Title or ""
-            local Callback = Configs[2] or Configs.Callback or function() end
-
-            ButtonCount = ButtonCount + 1
-            local Button = Make("Button", ButtonsHolder)
-            Make("Corner", Button, UDim.new(0, 8))
-            SetProps(Button, {
-                Text = Name,
-                Font = Enum.Font.GothamBold,
-                TextColor3 = Theme["Color Text"],
-                TextSize = 12,
-                ZIndex = 202
-            })
-
-            for _, Btn in pairs(ButtonsHolder:GetChildren()) do
-                if Btn:IsA("TextButton") then
-                    Btn.Size = UDim2.new(1 / ButtonCount, -(((ButtonCount - 1) * 20) / ButtonCount), 0, 32)
-                    Btn.ZIndex = 202
-                end
-            end
-            Button.Activated:Connect(Dialog.Close)
-            Button.Activated:Connect(Callback)
-        end
-
-        function Dialog:Close()
-            CreateTween({Frame, "Size", UDim2.fromOffset(250 * 1.08, 150 * 1.08), 0.2})
-            CreateTween({Screen, "Transparency", 1, 0.15})
-            CreateTween({Frame, "Transparency", 1, 0.15, true})
-            Screen:Destroy()
-        end
-        table.foreach(DOptions, function(_, Button)
-            Dialog:Button(Button)
-        end)
-        return Dialog
+function Window:Dialog(Configs)
+    if MainFrame:FindFirstChild("Dialog") then return end
+    if Minimized then
+        Window:RestoreFromBar()
     end
+
+    local DTitle = Configs[1] or Configs.Title or "Dialog"
+    local DText = Configs[2] or Configs.Text or "This is a Dialog"
+    local DOptions = Configs[3] or Configs.Options or {}
+
+    local Screen = InsertTheme(Create("Frame", MainFrame, {
+        BackgroundTransparency = 0.5,
+        BackgroundColor3 = Color3.fromRGB(0, 0, 0),
+        Active = true,
+        Size = UDim2.new(1, 0, 1, 0),
+        Name = "Dialog",
+        ZIndex = 150
+    }), "Stroke")
+    ApplyRoundedCorners(Screen, UDim.new(0, 12))
+
+    local Frame = Create("Frame", Screen, {
+        Active = true,
+        Size = UDim2.fromOffset(500, 320),
+        Position = UDim2.fromScale(0.5, 0.5),
+        AnchorPoint = Vector2.new(0.5, 0.5),
+        BackgroundColor3 = Theme["Color Hub 2"],
+        BackgroundTransparency = 0,
+        ZIndex = 200,
+        ClipsDescendants = true
+    })
+    
+    local MainCorner = Instance.new("UICorner")
+    MainCorner.CornerRadius = UDim.new(0, 14)
+    MainCorner.Parent = Frame
+    
+    local MainStroke = Instance.new("UIStroke")
+    MainStroke.Color = Theme["UI Border Color"]
+    MainStroke.Thickness = Theme["Border Thickness"] or 1.5
+    MainStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+    MainStroke.LineJoinMode = Enum.LineJoinMode.Round
+    MainStroke.Parent = Frame
+    
+    local Gradient = Instance.new("UIGradient")
+    Gradient.Color = ColorSequence.new({
+        ColorSequenceKeypoint.new(0, Theme["Color Hub 1"]),
+        ColorSequenceKeypoint.new(0.5, Theme["Color Hub 2"]),
+        ColorSequenceKeypoint.new(1, Theme["Color Hub 1"])
+    })
+    Gradient.Rotation = 135
+    Gradient.Parent = Frame
+    
+    local Title = InsertTheme(Create("TextLabel", Frame, {
+        Font = Enum.Font.GothamBold,
+        Size = UDim2.new(1, -40, 0, 45),
+        Text = DTitle,
+        TextXAlignment = "Left",
+        TextColor3 = Theme["Color Text"],
+        TextSize = 22,
+        Position = UDim2.fromOffset(24, 18),
+        BackgroundTransparency = 1,
+        ZIndex = 201
+    }), "Text")
+
+    local Desc = InsertTheme(Create("TextLabel", Frame, {
+        Font = Enum.Font.Gotham,
+        Size = UDim2.new(1, -48, 0, 0),
+        AutomaticSize = "Y",
+        Text = DText,
+        TextXAlignment = "Left",
+        TextColor3 = Theme["Color Dark Text"],
+        TextSize = 15,
+        Position = UDim2.fromOffset(24, 75),
+        BackgroundTransparency = 1,
+        TextWrapped = true,
+        ZIndex = 201
+    }), "DarkText")
+
+    local Divider = Create("Frame", Frame, {
+        Size = UDim2.new(1, -40, 0, 1),
+        Position = UDim2.new(0, 20, 0, 235),
+        BackgroundColor3 = Theme["Color Theme"],
+        BackgroundTransparency = 0.4,
+        BorderSizePixel = 0,
+        ZIndex = 201
+    })
+
+    local ButtonsHolder = Create("Frame", Frame, {
+        Size = UDim2.new(1, -30, 0, 65),
+        Position = UDim2.new(0, 15, 0, 245),
+        BackgroundTransparency = 1,
+        ZIndex = 201
+    }, {
+        Create("UIListLayout", {
+            Padding = UDim.new(0, 12),
+            VerticalAlignment = "Center",
+            FillDirection = "Horizontal",
+            HorizontalAlignment = "Right"
+        })
+    })
+
+    local Dialog = {}
+
+    function Dialog:Button(Configs)
+        local Name = Configs[1] or Configs.Name or "Button"
+        local Callback = Configs[2] or Configs.Callback or function() end
+
+        local Btn = Create("TextButton", ButtonsHolder, {
+            Size = UDim2.new(0, 120, 0, 42),
+            BackgroundColor3 = Theme["Color Theme"],
+            Text = Name,
+            TextColor3 = Theme["Color Text"],
+            TextSize = 15,
+            Font = Enum.Font.GothamBold,
+            AutoButtonColor = false,
+            ZIndex = 202
+        })
+        
+        local BtnCorner = Instance.new("UICorner")
+        BtnCorner.CornerRadius = UDim.new(0, 8)
+        BtnCorner.Parent = Btn
+
+        Btn.MouseEnter:Connect(function()
+            Btn.BackgroundTransparency = 0.2
+        end)
+        Btn.MouseLeave:Connect(function()
+            Btn.BackgroundTransparency = 0
+        end)
+
+        Btn.Activated:Connect(function()
+            Dialog:Close()
+            Callback()
+        end)
+    end
+
+    function Dialog:Close()
+        CreateTween({Frame, "Size", UDim2.fromOffset(480, 300), 0.15})
+        CreateTween({Frame, "BackgroundTransparency", 1, 0.15})
+        CreateTween({Screen, "BackgroundTransparency", 1, 0.15, true})
+        Screen:Destroy()
+    end
+
+    for _, opt in pairs(DOptions) do
+        Dialog:Button(opt)
+    end
+
+    CreateTween({Frame, "Size", UDim2.fromOffset(520, 340), 0.2})
+    CreateTween({Frame, "BackgroundTransparency", 0, 0.15})
+    CreateTween({Screen, "BackgroundTransparency", 0.5, 0.15})
+
+    return Dialog
+end
 
     function Window:GetMainContainer()
         return Containers
