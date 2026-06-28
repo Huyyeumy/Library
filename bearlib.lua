@@ -1207,7 +1207,7 @@ function bearlib:MakeWindow(Configs)
         Position = UDim2.new(1, -85, 0.5),
         AnchorPoint = Vector2.new(1, 0.5),
         BackgroundTransparency = 1,
-        Image = "rbxassetid://16170640476",
+        Image = "rbxassetid://10734950309",
         ImageColor3 = Theme["Color Text"],
         AutoButtonColor = false,
         Name = "Settings"
