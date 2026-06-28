@@ -1212,7 +1212,15 @@ function bearlib:MakeWindow(Configs)
         AutoButtonColor = false,
         Name = "Settings"
     })
-   
+    
+   SettingsButton.Activated:Connect(function()
+    Window:Dialog({
+        Title = "Settings",
+        Text = "",
+        Options = {}
+    })
+end)
+
     local InfoButton = Create("ImageButton", {
         Size = UDim2.new(0, 14, 0, 14),
         Position = UDim2.new(1, -110, 0.5),
