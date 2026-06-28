@@ -1212,12 +1212,24 @@ function bearlib:MakeWindow(Configs)
         AutoButtonColor = false,
         Name = "Settings"
     })
-
+   
+    local InfoButton = Create("ImageButton", {
+        Size = UDim2.new(0, 14, 0, 14),
+        Position = UDim2.new(1, -110, 0.5),
+        AnchorPoint = Vector2.new(1, 0.5),
+        BackgroundTransparency = 1,
+        Image = "rbxassetid://73132811772878",
+        ImageColor3 = Theme["Color Text"],
+        AutoButtonColor = false,
+        Name = "InfoButton"
+    })
+    
     SetChildren(ButtonsFolder, {
         CloseButton,
         MaximizeButton,
         MinimizeButton,
-        SettingsButton
+        SettingsButton,
+        InfoButton
     })
 
     local Window = {}
